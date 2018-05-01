@@ -26,6 +26,7 @@
 #include <processor.h>
 #include <main.h>
 #include <ecodes.h>
+#include <polling_server.h>
 
 static void print_config(void)
 {
@@ -88,10 +89,15 @@ static void init_queues(void)
 {
 	krnl_run_queue = hf_queue_create(MAX_TASKS);
 	if (krnl_run_queue == NULL) panic(PANIC_OOM);
+	
 	krnl_delay_queue = hf_queue_create(MAX_TASKS);
 	if (krnl_delay_queue == NULL) panic(PANIC_OOM);
+	
 	krnl_rt_queue = hf_queue_create(MAX_TASKS);
 	if (krnl_rt_queue == NULL) panic(PANIC_OOM);
+
+	krnl_ap_queue = hf_queue_create(MAX_TASKS);
+	if (krnl_ap_queue == NULL) panic(PANIC_OOM);
 }
 
 static void idletask(void)
@@ -139,6 +145,7 @@ int main(void)
 		_timer_reset();
 		_irq_init();
 		hf_spawn(idletask, 0, 0, 0, "idle task", 1024);
+		hf_spawn(polling_server, 10, 1, 10, "polling server", 1032);
 		_device_init();
 		_task_init();
 		app_main();

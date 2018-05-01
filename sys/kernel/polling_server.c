@@ -22,22 +22,25 @@ static int32_t ap_queue_next()
 }
 
 void dispatch(int32_t *rc){
+    printf("\n dispatching");
     krnl_task = &krnl_tcb[krnl_current_task];
+    printf("\n dispatching %s (%d) (%d)",krnl_task->name,krnl_task->id,krnl_task->bgjobs);
     *rc = _context_save(krnl_task->task_context);
-    if (*rc)
+    if (*rc){
+        printf("\n dispatch fail");
         return;
-
+    }
     if (krnl_task->state == TASK_RUNNING)
         krnl_task->state = TASK_READY;
     if (krnl_task->pstack[0] != STACK_MAGIC)
         panic(PANIC_STACK_OVERFLOW);
     if (krnl_tasks > 0){
-        krnl_current_task = krnl_pcb.sched_be();
         krnl_task->state = TASK_RUNNING;
         krnl_pcb.coop_cswitch++;
         #if KERNEL_LOG >= 1
                 dprintf("\n%d %d %d %d %d ", krnl_current_task, krnl_task->period, krnl_task->capacity, krnl_task->deadline, (uint32_t)_read_us());
         #endif
+        printf("\n starting");
         _context_restore(krnl_task->task_context, 1);
         panic(PANIC_UNKNOWN);
     }else{

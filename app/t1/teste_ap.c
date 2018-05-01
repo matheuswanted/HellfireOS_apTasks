@@ -19,5 +19,8 @@ void ap_producer(void){
 }
 
 void app_main(void){
+	hf_spawn(task, 4, 1, 4, "task a", 2048);
+	hf_spawn(task, 8, 2, 8, "task b", 2048);
+	hf_spawn(task, 12, 3, 12, "task c", 2048);
 	hf_spawn(ap_producer, 0, 0, 0, "task producer", 2048);
 }

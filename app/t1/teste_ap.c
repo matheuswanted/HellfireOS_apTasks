@@ -2,7 +2,6 @@
 
 void task(void){
 	int32_t jobs, id;
-	printf("\ntask init : %s (%d)[%d][%d]", hf_selfname(), id, hf_jobs(id), hf_dlm(id));
 	
 	id = hf_selfid();
 	for(;;){

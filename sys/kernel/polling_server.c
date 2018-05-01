@@ -22,10 +22,11 @@ static int32_t ap_queue_next()
 }
 
 void dispatch(int32_t *rc){
-    printf("\n dispatching");
-    krnl_task = &krnl_tcb[krnl_current_task];
-    printf("\n dispatching %s (%d) (%d)",krnl_task->name,krnl_task->id,krnl_task->bgjobs);
+	_timer_reset();
+	if (krnl_schedule == 0) return;
+    krnl_task = &krnl_tcb[krnl_current_task];    
     *rc = _context_save(krnl_task->task_context);
+    printf("\nSaved %s (%d) (%d)",krnl_task->name,krnl_task->id,krnl_task->bgjobs);
     if (*rc){
         printf("\n dispatch fail");
         return;
@@ -35,12 +36,15 @@ void dispatch(int32_t *rc){
     if (krnl_task->pstack[0] != STACK_MAGIC)
         panic(PANIC_STACK_OVERFLOW);
     if (krnl_tasks > 0){
+        krnl_current_task = krnl_ap_task;
+        krnl_task = &krnl_tcb[krnl_current_task];    
+        //printf("\n dispatching %d", krnl_current_task);
         krnl_task->state = TASK_RUNNING;
         krnl_pcb.coop_cswitch++;
         #if KERNEL_LOG >= 1
                 dprintf("\n%d %d %d %d %d ", krnl_current_task, krnl_task->period, krnl_task->capacity, krnl_task->deadline, (uint32_t)_read_us());
         #endif
-        printf("\n starting");
+        //printf("\n starting");
         _context_restore(krnl_task->task_context, 1);
         panic(PANIC_UNKNOWN);
     }else{
@@ -53,12 +57,12 @@ void polling_server(void){
     volatile int32_t status;
 
     while(1){
-        if(hf_queue_count(krnl_ap_queue) == 0)
+        if(hf_queue_count(krnl_ap_queue) == 0){
             hf_yield();
+        }
         else{
-            printf("\n executing ap");
             status = _di();
-            krnl_current_task = ap_queue_next();
+            krnl_ap_task = ap_queue_next();
 
             if(krnl_task->bgjobs > krnl_task->capacity){
                 hf_kill(krnl_task->id);

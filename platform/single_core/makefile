@@ -1,5 +1,5 @@
-APP = app/test_double
-ARCH = riscv/hf-riscv
+APP = app/t1
+ARCH = mips/hf-risc
 
 SERIAL_BAUD=57600
 SERIAL_DEVICE=/dev/ttyUSB0
@@ -12,7 +12,7 @@ HEAP_SIZE = 500000
 FLOATING_POINT = 1
 KERNEL_LOG = 2
 
-SRC_DIR = $(CURDIR)/../..
+SRC_DIR = ../..
 
 include $(SRC_DIR)/arch/$(ARCH)/arch.mak
 include $(SRC_DIR)/lib/lib.mak

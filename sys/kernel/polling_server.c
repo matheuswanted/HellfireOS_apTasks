@@ -54,8 +54,10 @@ void polling_server(void){
             status = _di();
             krnl_current_task = ap_queue_next();
 
-            if(krnl_current_task->bgjobs == krnl_current_task->capacity)
+            if(krnl_current_task->bgjobs >= krnl_current_task->capacity){
+                hf_queue_remtail();
                 hf_kill(krnl_current_task->id);
+            }
             else
                 dispatch(&rc);
 

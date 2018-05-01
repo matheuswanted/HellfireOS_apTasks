@@ -229,8 +229,10 @@ int32_t hf_spawn(void (*task)(), uint16_t period, uint16_t capacity, uint16_t de
 #if KERNEL_LOG == 2
 	dprintf("hf_spawn() %d ", (uint32_t)_read_us());
 #endif
-	if ((period < capacity) || (deadline < capacity))
+	if (!(period == 0 && deadline == 0 && capacity > 0) && ((period < capacity) || (deadline < capacity)))
+	{
 		return ERR_INVALID_PARAMETER;
+	}	
 	
 	status = _di();
 	while ((krnl_tcb[i].ptask != 0) && (i < MAX_TASKS))
@@ -463,7 +465,17 @@ int32_t hf_kill(uint16_t id)
 		for (j = i; j > 0; j--)
 			if (hf_queue_swap(krnl_rt_queue, j, j-1)) panic(PANIC_CANT_SWAP);
 		krnl_task2 = hf_queue_remhead(krnl_rt_queue);
-	}else{
+	}
+	if(krnl_task->capacity){
+		k = hf_queue_count(krnl_ap_queue);
+		for (i = 0; i < k; i++)
+			if (hf_queue_get(krnl_ap_queue, i) == krnl_task) break;
+		if (!k || i == k) panic(PANIC_NO_TASKS_AP);
+		for (j = i; j > 0; j--)
+			if (hf_queue_swap(krnl_ap_queue, j, j-1)) panic(PANIC_CANT_SWAP);
+		krnl_task2 = hf_queue_remhead(krnl_ap_queue);
+	}
+	else{
 		k = hf_queue_count(krnl_run_queue);
 		for (i = 0; i < k; i++)
 			if (hf_queue_get(krnl_run_queue, i) == krnl_task) break;

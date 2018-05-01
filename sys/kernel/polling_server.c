@@ -1,8 +1,10 @@
 #include <hal.h>
+#include <libc.h>
 #include <kprintf.h>
 #include <queue.h>
 #include <panic.h>
 #include <kernel.h>
+#include <task.h>
 #include <polling_server.h>
 
 static int32_t ap_queue_next()
@@ -12,9 +14,9 @@ static int32_t ap_queue_next()
         if (!krnl_task)
             panic(PANIC_NO_TASKS_AP);
         if (hf_queue_addtail(krnl_ap_queue, krnl_task))
-            panic(PANIC_CANT_PLACE_RT);
+            panic(PANIC_CANT_PLACE_AP);
 
-    }while(krnl_task->state == TASK_BLOCKED)
+    }while(krnl_task->state == TASK_BLOCKED);
     krnl_task->bgjobs++;
     return krnl_task->id;
 }
@@ -49,19 +51,19 @@ void polling_server(void){
 
     while(1){
         if(hf_queue_count(krnl_ap_queue) == 0)
-            hf_yeld();
+            hf_yield();
         else{
+            printf("\n executing ap");
             status = _di();
             krnl_current_task = ap_queue_next();
 
-            if(krnl_current_task->bgjobs >= krnl_current_task->capacity){
-                hf_queue_remtail();
-                hf_kill(krnl_current_task->id);
+            if(krnl_task->bgjobs > krnl_task->capacity){
+                hf_kill(krnl_task->id);
             }
             else
                 dispatch(&rc);
 
-            _ei(*status);
+            _ei(status);
 
         }
     }

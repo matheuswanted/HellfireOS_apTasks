@@ -2,6 +2,7 @@
     "files.associations": {
         "kernel.h": "c",
         "kprintf.h": "c",
-        "panic.h": "c"
+        "panic.h": "c",
+        "polling_server.h": "c"
     }
 }
